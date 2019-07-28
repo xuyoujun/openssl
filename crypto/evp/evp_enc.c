@@ -1127,7 +1127,8 @@ int EVP_CIPHER_CTX_copy(EVP_CIPHER_CTX *out, const EVP_CIPHER_CTX *in)
     return 1;
 }
 
-static void *evp_cipher_from_dispatch(const OSSL_DISPATCH *fns,
+static void *evp_cipher_from_dispatch(const char *name,
+                                      const OSSL_DISPATCH *fns,
                                       OSSL_PROVIDER *prov)
 {
     EVP_CIPHER *cipher = NULL;
@@ -1137,8 +1138,12 @@ static void *evp_cipher_from_dispatch(const OSSL_DISPATCH *fns,
      * The legacy NID is set by EVP_CIPHER_fetch() if the name exists in
      * the object database.
      */
-    if ((cipher = EVP_CIPHER_meth_new(0, 0, 0)) == NULL)
+    if ((cipher = EVP_CIPHER_meth_new(0, 0, 0)) == NULL
+        || (cipher->name = OPENSSL_strdup(name)) == NULL) {
+        EVP_CIPHER_meth_free(cipher);
+        EVPerr(0, ERR_R_MALLOC_FAILURE);
         return NULL;
+    }
 
     for (; fns->function_id != 0; fns++) {
         switch (fns->function_id) {
@@ -1257,4 +1262,13 @@ EVP_CIPHER *EVP_CIPHER_fetch(OPENSSL_CTX *ctx, const char *algorithm,
 #endif
 
     return cipher;
+}
+
+void EVP_CIPHER_do_all_ex(OPENSSL_CTX *libctx,
+                          void (*fn)(EVP_CIPHER *mac, void *arg),
+                          void *arg)
+{
+    evp_generic_do_all(libctx, OSSL_OP_CIPHER,
+                       (void (*)(void *, void *))fn, arg,
+                       evp_cipher_from_dispatch, evp_cipher_free);
 }

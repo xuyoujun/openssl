@@ -4691,3 +4691,12 @@ EVP_KEYMGMT_free                        4796	3_0_0	EXIST::FUNCTION:
 EVP_KEYMGMT_provider                    4797	3_0_0	EXIST::FUNCTION:
 X509_PUBKEY_dup                         4798	3_0_0	EXIST::FUNCTION:
 ERR_put_func_error                      4799	3_0_0	EXIST::FUNCTION:
+EVP_MD_name                             4800	3_0_0	EXIST::FUNCTION:
+EVP_CIPHER_name                         4801	3_0_0	EXIST::FUNCTION:
+EVP_MD_provider                         4802	3_0_0	EXIST::FUNCTION:
+EVP_CIPHER_provider                     4803	3_0_0	EXIST::FUNCTION:
+OSSL_PROVIDER_name                      4804	3_0_0	EXIST::FUNCTION:
+EVP_CIPHER_do_all_ex                    4805	3_0_0	EXIST::FUNCTION:
+EVP_MD_do_all_ex                        4806	3_0_0	EXIST::FUNCTION:
+EVP_KEYEXCH_provider                    4807	3_0_0	EXIST::FUNCTION:
+OSSL_PROVIDER_available                 4808	3_0_0	EXIST::FUNCTION:

@@ -43,9 +43,6 @@ static OSSL_core_put_error_fn *c_put_error;
 static OSSL_core_add_error_vdata_fn *c_add_error_vdata;
 static OSSL_CRYPTO_malloc_fn *c_CRYPTO_malloc;
 static OSSL_CRYPTO_zalloc_fn *c_CRYPTO_zalloc;
-static OSSL_CRYPTO_memdup_fn *c_CRYPTO_memdup;
-static OSSL_CRYPTO_strdup_fn *c_CRYPTO_strdup;
-static OSSL_CRYPTO_strndup_fn *c_CRYPTO_strndup;
 static OSSL_CRYPTO_free_fn *c_CRYPTO_free;
 static OSSL_CRYPTO_clear_free_fn *c_CRYPTO_clear_free;
 static OSSL_CRYPTO_realloc_fn *c_CRYPTO_realloc;
@@ -55,7 +52,6 @@ static OSSL_CRYPTO_secure_zalloc_fn *c_CRYPTO_secure_zalloc;
 static OSSL_CRYPTO_secure_free_fn *c_CRYPTO_secure_free;
 static OSSL_CRYPTO_secure_clear_free_fn *c_CRYPTO_secure_clear_free;
 static OSSL_CRYPTO_secure_allocated_fn *c_CRYPTO_secure_allocated;
-static OSSL_OPENSSL_hexstr2buf_fn *c_OPENSSL_hexstr2buf;
 
 typedef struct fips_global_st {
     const OSSL_PROVIDER *prov;
@@ -80,11 +76,11 @@ static const OPENSSL_CTX_METHOD fips_prov_ossl_ctx_method = {
 
 
 /* Parameters we provide to the core */
-static const OSSL_ITEM fips_param_types[] = {
-    { OSSL_PARAM_UTF8_PTR, OSSL_PROV_PARAM_NAME },
-    { OSSL_PARAM_UTF8_PTR, OSSL_PROV_PARAM_VERSION },
-    { OSSL_PARAM_UTF8_PTR, OSSL_PROV_PARAM_BUILDINFO },
-    { 0, NULL }
+static const OSSL_PARAM fips_param_types[] = {
+    OSSL_PARAM_DEFN(OSSL_PROV_PARAM_NAME, OSSL_PARAM_UTF8_PTR, NULL, 0),
+    OSSL_PARAM_DEFN(OSSL_PROV_PARAM_VERSION, OSSL_PARAM_UTF8_PTR, NULL, 0),
+    OSSL_PARAM_DEFN(OSSL_PROV_PARAM_BUILDINFO, OSSL_PARAM_UTF8_PTR, NULL, 0),
+    OSSL_PARAM_END
 };
 
 /* TODO(3.0): To be removed */
@@ -149,7 +145,7 @@ static int dummy_evp_call(void *provctx)
     return ret;
 }
 
-static const OSSL_ITEM *fips_get_param_types(const OSSL_PROVIDER *prov)
+static const OSSL_PARAM *fips_get_param_types(const OSSL_PROVIDER *prov)
 {
     return fips_param_types;
 }
@@ -321,15 +317,6 @@ int OSSL_provider_init(const OSSL_PROVIDER *provider,
         case OSSL_FUNC_CRYPTO_ZALLOC:
             c_CRYPTO_zalloc = OSSL_get_CRYPTO_zalloc(in);
             break;
-        case OSSL_FUNC_CRYPTO_MEMDUP:
-            c_CRYPTO_memdup = OSSL_get_CRYPTO_memdup(in);
-            break;
-        case OSSL_FUNC_CRYPTO_STRDUP:
-            c_CRYPTO_strdup = OSSL_get_CRYPTO_strdup(in);
-            break;
-        case OSSL_FUNC_CRYPTO_STRNDUP:
-            c_CRYPTO_strndup = OSSL_get_CRYPTO_strndup(in);
-            break;
         case OSSL_FUNC_CRYPTO_FREE:
             c_CRYPTO_free = OSSL_get_CRYPTO_free(in);
             break;
@@ -356,9 +343,6 @@ int OSSL_provider_init(const OSSL_PROVIDER *provider,
             break;
         case OSSL_FUNC_CRYPTO_SECURE_ALLOCATED:
             c_CRYPTO_secure_allocated = OSSL_get_CRYPTO_secure_allocated(in);
-            break;
-        case OSSL_FUNC_OPENSSL_HEXSTR2BUF:
-            c_OPENSSL_hexstr2buf = OSSL_get_OPENSSL_hexstr2buf(in);
             break;
         default:
             /* Just ignore anything we don't understand */
@@ -478,21 +462,6 @@ void *CRYPTO_zalloc(size_t num, const char *file, int line)
     return c_CRYPTO_zalloc(num, file, line);
 }
 
-void *CRYPTO_memdup(const void *str, size_t siz, const char *file, int line)
-{
-    return c_CRYPTO_memdup(str, siz, file, line);
-}
-
-char *CRYPTO_strdup(const char *str, const char *file, int line)
-{
-    return c_CRYPTO_strdup(str, file, line);
-}
-
-char *CRYPTO_strndup(const char *str, size_t s, const char *file, int line)
-{
-    return c_CRYPTO_strndup(str, s, file, line);
-}
-
 void CRYPTO_free(void *ptr, const char *file, int line)
 {
     c_CRYPTO_free(ptr, file, line);
@@ -532,11 +501,6 @@ void CRYPTO_secure_free(void *ptr, const char *file, int line)
 void CRYPTO_secure_clear_free(void *ptr, size_t num, const char *file, int line)
 {
     c_CRYPTO_secure_clear_free(ptr, num, file, line);
-}
-
-unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
-{
-    return c_OPENSSL_hexstr2buf(str, len);
 }
 
 int CRYPTO_secure_allocated(const void *ptr)

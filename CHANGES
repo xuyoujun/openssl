@@ -9,9 +9,26 @@
 
  Changes between 1.1.1 and 3.0.0 [xx XXX xxxx]
 
+  *) Introduced a new function, OSSL_PROVIDER_available(), which can be used
+     to check if a named provider is loaded and available.  When called, it
+     will also activate all fallback providers if such are still present.
+     [Richard Levitte]
+
+  *) Enforce a minimum DH modulus size of 512 bits.
+     [Bernd Edlinger]
+
+  *) Changed DH parameters to generate the order q subgroup instead of 2q.
+     Previously generated DH parameters are still accepted by DH_check
+     but DH_generate_key works around that by clearing bit 0 of the
+     private key for those. This avoids leaking bit 0 of the private key.
+     [Bernd Edlinger]
+
   *) Added a new FUNCerr() macro that takes a function name.
      The macro SYSerr() is deprecated.
      [Rich Salz]
+
+  *) Significantly reduce secure memory usage by the randomness pools.
+     [Paul Dale]
 
   *) {CRYPTO,OPENSSL}_mem_debug_{push,pop} are now no-ops and have been
      deprecated.
